@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Encryption Tool (Base64 Output)</title>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Modern UI Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            color: #4a5568;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .section:hover {
+            border-color: #667eea;
+        }
+
+        .section i {
+            font-size: 3em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            margin: 10px 0;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .password-input, .base64-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1em;
+            margin: 10px 0;
+            transition: border-color 0.3s ease;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .password-input:focus, .base64-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .base64-textarea {
+            font-family: 'Courier New', monospace;
+            background-color: #f7fafc;
+            color: #2d3748;
+        }
+
+        .base64-textarea.readonly {
+            background-color: #edf2f7;
+            color: #4a5568;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1em;
+            margin: 10px;
+            transition: transform 0.2s ease, background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .action-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        }
+
+        .action-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .copy-btn {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+        }
+
+        .copy-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .copy-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .download-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            margin: 10px;
+            transition: transform 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .download-link:hover {
+            transform: translateY(-2px);
+        }
+
+        .base64-output {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .section i {
+                font-size: 2.5em;
+            }
+
+            .action-btn, .download-link, .copy-btn {
+                width: 100%;
+                justify-content: center;
+                margin: 5px 0;
+            }
+
+            .base64-textarea {
+                min-height: 150px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5em;
+            }
+
+            .section {
+                padding: 15px;
+            }
+
+            .base64-textarea {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-lock"></i> Audio Encryption Tool (Base64)</h1>
+        
+        <!-- Encryption Section -->
+        <div class="section">
+            <i class="fas fa-file-audio"></i>
+            <h3>Encrypt Audio File to Base64</h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="encryptFile" accept="audio/*">
+                <label for="encryptFile" class="file-btn">
+                    <i class="fas fa-upload"></i> Select Audio File (MP3, M4A, etc.)
+                </label>
+            </div>
+            <input type="password" id="encryptPassword" class="password-input" placeholder="Enter encryption password" />
+            <button id="encryptBtn" class="action-btn" disabled>
+                <i class="fas fa-lock"></i> Encrypt to Base64
+            </button>
+            <div id="base64Output" class="base64-output hidden">
+                <h4>Encrypted Base64 Code:</h4>
+                <textarea id="base64Text" class="base64-textarea readonly" readonly placeholder="Base64 will appear here..."></textarea>
+                <br>
+                <button id="copyBtn" class="copy-btn">
+                    <i class="fas fa-copy"></i> Copy Base64 to Clipboard
+                </button>
+                <a id="downloadBase64" class="download-link hidden" download="encrypted_audio_base64.txt">
+                    <i class="fas fa-download"></i> Download Base64 as TXT
+                </a>
+            </div>
+        </div>
+
+        <!-- Decryption Section -->
+        <div class="section">
+            <i class="fas fa-unlock"></i>
+            <h3>Decrypt Base64 to Audio</h3>
+            <textarea id="decryptBase64" class="base64-textarea" placeholder="Paste the Base64 encrypted code here..."></textarea>
+            <input type="password" id="decryptPassword" class="password-input" placeholder="Enter decryption password" />
+            <button id="decryptBtn" class="action-btn" disabled>
+                <i class="fas fa-unlock-alt"></i> Decrypt to Audio
+            </button>
+            <a id="downloadDecrypted" class="download-link hidden" download="decrypted_audio.mp3">
+                <i class="fas fa-download"></i> Download Decrypted Audio
+            </a>
+        </div>
+
+        <div id="status" class="status hidden"></div>
+    </div>
+
+    <script>
+        // Base64 Utility Functions
+        function uint8ArrayToBase64(uint8Array) {
+            let binary = '';
+            for (let i = 0; i < uint8Array.byteLength; i++) {
+                binary += String.fromCharCode(uint8Array[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToUint8Array(base64) {
+            const binaryString = atob(base64);
+            const bytes = new Uint8Array(binaryString.length);
+            for (let i = 0; i < binaryString.length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes;
+        }
+
+        // Web Crypto API for encryption/decryption
+        async function deriveKey(password, salt) {
+            const encoder = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(password),
+                { name: 'PBKDF2' },
+                false,
+                ['deriveBits', 'deriveKey']
+            );
+            return crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
+        }
+
+        async function encryptToBase64(file, password) {
+            const salt = crypto.getRandomValues(new Uint8Array(16));
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+
+            const key = await deriveKey(password, salt);
+
+            const buffer = await file.arrayBuffer();
+            const encrypted = await crypto.subtle.encrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                buffer
+            );
+
+            // Combine salt + iv + encrypted data
+            const combined = new Uint8Array(salt.byteLength + iv.byteLength + encrypted.byteLength);
+            combined.set(salt, 0);
+            combined.set(iv, salt.byteLength);
+            combined.set(new Uint8Array(encrypted), salt.byteLength + iv.byteLength);
+
+            return uint8ArrayToBase64(combined);
+        }
+
+        async function decryptFromBase64(base64, password) {
+            const data = base64ToUint8Array(base64);
+
+            if (data.length < 28) throw new Error('Invalid Base64 data');
+
+            const salt = data.slice(0, 16);
+            const iv = data.slice(16, 28);
+            const encryptedData = data.slice(28);
+
+            const key = await deriveKey(password, salt);
+
+            const decrypted = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv: iv },
+                key,
+                encryptedData
+            );
+
+            return new Blob([decrypted], { type: 'audio/mpeg' }); // Default to MP3-like for audio
+        }
+
+        // UI Elements
+        const encryptFileInput = document.getElementById('encryptFile');
+        const encryptPassword = document.getElementById('encryptPassword');
+        const encryptBtn = document.getElementById('encryptBtn');
+        const base64Output = document.getElementById('base64Output');
+        const base64Text = document.getElementById('base64Text');
+        const copyBtn = document.getElementById('copyBtn');
+        const downloadBase64 = document.getElementById('downloadBase64');
+
+        const decryptBase64 = document.getElementById('decryptBase64');
+        const decryptPassword = document.getElementById('decryptPassword');
+        const decryptBtn = document.getElementById('decryptBtn');
+        const downloadDecrypted = document.getElementById('downloadDecrypted');
+
+        const status = document.getElementById('status');
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            if (type !== 'hidden') {
+                status.classList.remove('hidden');
+            } else {
+                status.classList.add('hidden');
+            }
+        }
+
+        // Copy to Clipboard Function
+        async function copyToClipboard() {
+            try {
+                await navigator.clipboard.writeText(base64Text.value);
+                showStatus('Base64 copied to clipboard!', 'success');
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copy Base64 to Clipboard';
+                }, 2000);
+            } catch (err) {
+                showStatus('Failed to copy: ' + err.message, 'error');
+            }
+        }
+
+        copyBtn.addEventListener('click', copyToClipboard);
+
+        // Encryption Events
+        function updateEncryptBtn() {
+            encryptBtn.disabled = !encryptFileInput.files[0] || !encryptPassword.value.trim();
+        }
+
+        encryptFileInput.addEventListener('change', updateEncryptBtn);
+        encryptPassword.addEventListener('input', updateEncryptBtn);
+
+        encryptBtn.addEventListener('click', async () => {
+            const file = encryptFileInput.files[0];
+            const password = encryptPassword.value.trim();
+
+            if (!file || !password) {
+                showStatus('Please select a file and enter a password.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Encrypting to Base64...', 'success');
+                encryptBtn.disabled = true;
+                const base64 = await encryptToBase64(file, password);
+                base64Text.value = base64;
+                base64Output.classList.remove('hidden');
+                const blob = new Blob([base64], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                downloadBase64.href = url;
+                downloadBase64.classList.remove('hidden');
+                showStatus(`Encryption successful! Base64 length: ${base64.length}. Copy or download it.`, 'success');
+            } catch (error) {
+                showStatus('Encryption failed: ' + error.message, 'error');
+            } finally {
+                encryptBtn.disabled = false;
+            }
+        });
+
+        // Decryption Events
+        function updateDecryptBtn() {
+            const base64Input = decryptBase64.value.trim();
+            decryptBtn.disabled = !base64Input || !decryptPassword.value.trim();
+        }
+
+        decryptBase64.addEventListener('input', updateDecryptBtn);
+        decryptPassword.addEventListener('input', updateDecryptBtn);
+
+        decryptBtn.addEventListener('click', async () => {
+            const base64 = decryptBase64.value.trim();
+            const password = decryptPassword.value.trim();
+
+            if (!base64 || !password) {
+                showStatus('Please paste Base64 and enter a password.', 'error');
+                return;
+            }
+
+            // Basic Base64 validation
+            if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64.replace(/\s/g, ''))) {
+                showStatus('Invalid Base64 format.', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Decrypting Base64 to audio...', 'success');
+                decryptBtn.disabled = true;
+                const decryptedBlob = await decryptFromBase64(base64, password);
+                const url = URL.createObjectURL(decryptedBlob);
+                downloadDecrypted.href = url;
+                downloadDecrypted.classList.remove('hidden');
+                showStatus('Decryption successful! Download the audio below.', 'success');
+            } catch (error) {
+                showStatus('Decryption failed: ' + error.message + '. Check Base64 and password.', 'error');
+            } finally {
+                decryptBtn.disabled = false;
+            }
+        });
+
+        // Clean up URLs on page unload
+        window.addEventListener('beforeunload', () => {
+            if (downloadBase64.href) URL.revokeObjectURL(downloadBase64.href);
+            if (downloadDecrypted.href) URL.revokeObjectURL(downloadDecrypted.href);
+        });
+    </script>
+</body>
+</html>
