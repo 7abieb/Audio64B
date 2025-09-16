@@ -120,7 +120,7 @@ Contributions are welcome! Fork the repo, make changes, and submit a pull reques
 - Support multi-file batch processing.
 - Integrate with local storage for saving sessions.
 
-Report issues or feature requests in the [Issues](https://github.com/yourusername/audio-encryption-tool/issues) tab.
+
 
 ## License
 
